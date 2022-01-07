@@ -7,12 +7,15 @@
 #
 
 CXX = c++
-CXXFLAGS = -pthread -std=c++11 -march=native
+CXXFLAGS = -pthread -std=c++11 
 OBJS = args.o autotune.o matrix.o dictionary.o loss.o productquantizer.o densematrix.o quantmatrix.o vector.o model.o utils.o meter.o fasttext.o
 INCLUDES = -I.
 
 opt: CXXFLAGS += -O3 -funroll-loops -DNDEBUG
 opt: fasttext
+
+opt-fastest: CXXFLAGS += -O3 -funroll-loops -DNDEBUG -flto -ffast-math
+opt-fastest: fasttext
 
 coverage: CXXFLAGS += -O0 -fno-inline -fprofile-arcs --coverage
 coverage: fasttext
@@ -122,4 +125,30 @@ fasttext.bc: src/fasttext.cc src/*.h
 webassembly/fasttext_wasm.js: $(EMOBJS) webassembly/fasttext_wasm.cc Makefile
 	$(EMCXX) $(EMCXXFLAGS) $(EMOBJS) -o webassembly/fasttext_wasm.js
 
+bm:
+	sync; echo 1 > sudo tee /proc/sys/vm/drop_caches
+	sync; echo 2 > sudo tee /proc/sys/vm/drop_caches
+	sync; echo 3 > sudo tee /proc/sys/vm/drop_caches
+	mkdir -p benchmarks
 
+	/usr/bin/time -p  -o benchmarks/$(BENCHMARK_NAME).time.txt perf record -o benchmarks/$(BENCHMARK_NAME).perf.record  -g ./fasttext skipgram -input data/fil9.tiny -output
+	result/skipgram.fil9.tiny.1.2147483563.$(BENCHMARK_NAME) -thread 1 -seed 2147483563 -verbose 0
+
+	perf stat -o benchmarks/$(BENCHMARK_NAME).perf.stat.v1 -g ./fasttext skipgram -input data/fil9.tiny -output
+	result/skipgram.fil9.tiny.stat.1.2147483563.$(BENCHMARK_NAME) -thread 1 -seed 2147483563 -verbose 0
+
+	perf stat -o benchmarks/$(BENCHMARK_NAME).perf.stat.v2 -g ./fasttext skipgram -input data/fil9.tiny -output
+	result/skipgram.fil9.tiny.stat.1.2147483563.$(BENCHMARK_NAME) -thread 1 -seed 2147483563 -verbose 0
+
+	perf stat -o benchmarks/$(BENCHMARK_NAME).perf.stat.v3 -g ./fasttext skipgram -input data/fil9.tiny -output
+	result/skipgram.fil9.tiny.stat.1.2147483563.$(BENCHMARK_NAME) -thread 1 -seed 2147483563 -verbose 0
+
+	perf script -i benchmarks/$(BENCHMARK_NAME).perf.record >
+	benchmarks/$(BENCHMARK_NAME).perf.record.script
+
+	stackcollapse-perf.pl benchmarks/$(BENCHMARK_NAME).perf.record.script >
+	benchmarks/$(BENCHMARK_NAME).folded
+
+	flamegraph.pl benchmarks/$(BENCHMARK_NAME).folded > benchmarks/$(BENCHMARK_NAME).folded.svg
+	stat ./fasttext > benchmarks/$(BENCHMARK_NAME).stat
+	size ./fasttext > benchmarks/$(BENCHMARK_NAME).size
