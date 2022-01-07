@@ -133,22 +133,6 @@ bm:
 
 	/usr/bin/time -p  -o benchmarks/$(BENCHMARK_NAME).time.txt perf record -o benchmarks/$(BENCHMARK_NAME).perf.record  -g ./fasttext skipgram -input data/fil9.tiny -output
 	result/skipgram.fil9.tiny.1.2147483563.$(BENCHMARK_NAME) -thread 1 -seed 2147483563 -verbose 0
-
-	perf stat -o benchmarks/$(BENCHMARK_NAME).perf.stat.v1 -g ./fasttext skipgram -input data/fil9.tiny -output
-	result/skipgram.fil9.tiny.stat.1.2147483563.$(BENCHMARK_NAME) -thread 1 -seed 2147483563 -verbose 0
-
-	perf stat -o benchmarks/$(BENCHMARK_NAME).perf.stat.v2 -g ./fasttext skipgram -input data/fil9.tiny -output
-	result/skipgram.fil9.tiny.stat.1.2147483563.$(BENCHMARK_NAME) -thread 1 -seed 2147483563 -verbose 0
-
-	perf stat -o benchmarks/$(BENCHMARK_NAME).perf.stat.v3 -g ./fasttext skipgram -input data/fil9.tiny -output
-	result/skipgram.fil9.tiny.stat.1.2147483563.$(BENCHMARK_NAME) -thread 1 -seed 2147483563 -verbose 0
-
-	perf script -i benchmarks/$(BENCHMARK_NAME).perf.record >
-	benchmarks/$(BENCHMARK_NAME).perf.record.script
-
-	stackcollapse-perf.pl benchmarks/$(BENCHMARK_NAME).perf.record.script >
-	benchmarks/$(BENCHMARK_NAME).folded
-
-	flamegraph.pl benchmarks/$(BENCHMARK_NAME).folded > benchmarks/$(BENCHMARK_NAME).folded.svg
+	
 	stat ./fasttext > benchmarks/$(BENCHMARK_NAME).stat
 	size ./fasttext > benchmarks/$(BENCHMARK_NAME).size
