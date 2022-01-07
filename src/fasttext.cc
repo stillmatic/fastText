@@ -109,15 +109,27 @@ int32_t FastText::getLabelId(const std::string& label) const {
 }
 
 void FastText::getWordVector(Vector& vec, const std::string& word) const {
-  const std::vector<int32_t>& ngrams = dict_->getSubwords(word);
+  auto word_id = dict_->getId(word);
   vec.zero();
-  for (int i = 0; i < ngrams.size(); i++) {
-    addInputVector(vec, ngrams[i]);
-  }
-  if (ngrams.size() > 0) {
-    vec.mul(1.0 / ngrams.size());
+  if (word_id == -1) {
+  	const std::vector ngrams = dict_->getSubwords(word);
+  	for (int32_t ngram : ngrams) {
+    		addInputVector(vec, ngram);
+  	}
+  	if (ngrams.size() > 0) {
+    	vec.mul(1.0 / ngrams.size());
+  	}
+  } else {
+  	const std::vector& ngrams = dict_->getSubwords(word_id);
+  	for (int32_t ngram : ngrams) {
+    		addInputVector(vec, ngram);
+  	}
+  	if (ngrams.size() > 0) {
+    	vec.mul(1.0 / ngrams.size());
+  	}
   }
 }
+
 
 void FastText::getSubwordVector(Vector& vec, const std::string& subword) const {
   vec.zero();
