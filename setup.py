@@ -75,8 +75,8 @@ ext_modules = [
             FASTTEXT_SRC,
         ],
         language='c++',
-        extra_compile_args=["-O0 -fno-inline -fprofile-arcs -pthread -march=native" if coverage else
-                            "-O3 -funroll-loops -pthread -march=native"],
+        extra_compile_args=["-O0", "-fno-inline", "-fprofile-arcs", "-pthread", "-march=native" if coverage else
+                            "-O3", "-funroll-loops", "-pthread", "-DNDEBUG", "-ffast-math"],
     ),
 ]
 
@@ -151,7 +151,8 @@ class BuildExt(build_ext):
                 '/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version()
             )
         for ext in self.extensions:
-            ext.extra_compile_args = opts
+            print("OPTS: ", opts)
+            ext.extra_compile_args += opts
             ext.extra_link_args = extra_link_args
         build_ext.build_extensions(self)
 
